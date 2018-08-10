@@ -23,69 +23,40 @@ public class MyService extends Service {
     private Timer timer;
     private TimerTask timerTask;
     public int counter=0;
-    public MyService instance_;
-
-    private Handler mHandler = new Handler();
-
-    public MyService() {
-
-        instance_ = this;
-    }
 
     public void startTimer() {
         timer = new Timer();
-        initializeTimerTask();
-        timer.schedule(timerTask, 0, 60000); //
-    }
 
-    public void initializeTimerTask() {
         timerTask = new TimerTask() {
             public void run() {
-                mHandler.post(new Runnable() {
+                File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                File file = new File(path, "tmp.txt");
 
-                    @Override
-                    public void run() {
+                try
+                {
+                    file.createNewFile();
+                    FileOutputStream fOut = new FileOutputStream(file,true);
+                    OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
 
-                        File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-                        File file = new File(path, "tmp.txt");
+                    Calendar calendar = Calendar.getInstance();
+                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat(" dd:MMMM:yyyy HH:mm:ss a");
+                    final String strDate = simpleDateFormat.format(calendar.getTime());
 
-                        try
-                        {
-                            file.createNewFile();
-                            FileOutputStream fOut = new FileOutputStream(file,true);
-                            OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
+                    myOutWriter.append(Integer.toString(counter) + strDate + "\n");
+                    myOutWriter.close();
 
-                            Calendar calendar = Calendar.getInstance();
-                            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(" dd:MMMM:yyyy HH:mm:ss a");
-                            final String strDate = simpleDateFormat.format(calendar.getTime());
-
-                            myOutWriter.append(Integer.toString(counter) + strDate + "\n");
-                            myOutWriter.close();
-
-                            fOut.flush();
-                            fOut.close();
-
-                            NotificationCompat.Builder builder =
-                                    new NotificationCompat.Builder(instance_, "channel-01")
-                                            .setSmallIcon(R.mipmap.ic_launcher)
-                                            .setContentTitle("Title")
-                                            .setContentText("Notification text").setOnlyAlertOnce(true);
-
-                            startForeground (45, builder.build());
-                        }
-                        catch (IOException e)
-                        {
-                            Log.e("Exception", "File write failed: " + e.toString());
-                        }
-
-                    }
-
-                });
-
-
+                    fOut.flush();
+                    fOut.close();
+                }
+                catch (IOException e)
+                {
+                    Log.e("Exception", "File write failed: " + e.toString());
+                }
 
             }
         };
+
+        timer.schedule(timerTask, 0, 60000);
     }
 
     @Override
@@ -94,17 +65,14 @@ public class MyService extends Service {
 
         Toast.makeText(this,"Created", Toast.LENGTH_SHORT).show();
 
-        NotificationCompat.Builder builder =
-                new NotificationCompat.Builder(this, "channel-01")
-                        .setSmallIcon(R.mipmap.ic_launcher)
-                        .setContentTitle("Title")
-                        .setContentText("Notification text").setOnlyAlertOnce(true);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "channel-01")
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle("Title")
+                .setContentText("Notification text").setOnlyAlertOnce(true);
 
         startForeground (45, builder.build());
         startTimer();
     }
-
-
 
     public void onDestroy() {
         super.onDestroy();
